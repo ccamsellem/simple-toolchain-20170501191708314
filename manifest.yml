@@ -1,11 +1,11 @@
 ---
 declared-services:
   my-nlu-service:
-    label: natural-language-understanding
+    label: nlu-survey-git
     plan: free
 
 applications:
-- name: natural-language-understanding-demo
+- name: nlu-survey-git
   path: .
   buildpack: sdk-for-nodejs
   command: npm start
