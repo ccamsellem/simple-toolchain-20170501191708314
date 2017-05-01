@@ -1,4 +1,14 @@
+---
+declared-services:
+  my-nlu-service:
+    label: natural-language-understanding
+    plan: free
+
 applications:
-- name: node-hello-world
-  memory: 128M
+- name: natural-language-understanding-demo
+  path: .
   buildpack: sdk-for-nodejs
+  command: npm start
+  memory: 512M
+  services:
+  - my-nlu-service

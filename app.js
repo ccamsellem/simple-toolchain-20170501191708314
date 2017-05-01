@@ -1,29 +1,53 @@
-/*eslint-env node*/
+/**
+ * Copyright 2015 IBM Corp. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-//------------------------------------------------------------------------------
-// hello world app is based on node.js starter application for Bluemix
-//------------------------------------------------------------------------------
-
-// This application uses express as its web server
-// for more info, see: http://expressjs.com
-var express = require('express');
-
-// cfenv provides access to your Cloud Foundry environment
-// for more info, see: https://www.npmjs.com/package/cfenv
-var cfenv = require('cfenv');
-
-// create a new express server
-var app = express();
-
-// serve the files out of ./public as our main files
-app.use(express.static(__dirname + '/public'));
-
-// get the app environment from Cloud Foundry
-var appEnv = cfenv.getAppEnv();
-
-// start server on the specified port and binding host
-app.listen(appEnv.port, '0.0.0.0', function() {
-
-	// print a message when the server starts listening
-  console.log("server starting on " + appEnv.url);
+const express = require('express');
+const app = express();
+const NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js');
+const nlu = new NaturalLanguageUnderstandingV1({
+  version_date: NaturalLanguageUnderstandingV1.VERSION_DATE_2016_01_23
 });
+
+// setup body-parser
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+// Bootstrap application settings
+require('./config/express')(app);
+
+
+app.get('/', function(req, res) {
+  res.render('index');
+});
+
+app.post('/api/analyze', function(req, res, next) {
+  if (process.env.SHOW_DUMMY_DATA) {
+    res.json(require('./payload.json'));
+  } else {
+    nlu.analyze(req.body, (err, results) => {
+      if (err) {
+        return next(err);
+      } else {
+        res.json({ query: req.body.query, results });
+      }
+    });
+  }
+});
+
+// error-handler settings
+require('./config/error-handler')(app);
+
+module.exports = app;
